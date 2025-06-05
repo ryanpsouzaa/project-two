@@ -4,8 +4,9 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User
+from .models import User, Listing, Bid, Comment
 
+#@login_required(login_url="login") -> decorator para verificar a autenticacao dos users
 
 def index(request):
     return render(request, "auctions/index.html")
@@ -61,3 +62,39 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
+
+
+def create_announce(request):
+    if request.user.is_authenticated:
+        if request.method == "POST":
+            title = request.POST["title"]
+            description = request.POST["description"]
+            initial_bid = request.POST["bid"]
+
+            category = request.POST["category"]
+            image_url = request.POST["image"]
+
+            user = request.user
+            if not category.strip() and not image_url.strip():
+                listing = Listing(title=title, description=description, initial_bid=initial_bid,
+                owner_user=user)
+
+            else:
+                listing = Listing(title=title, description=description, initial_bid=initial_bid,
+                image_url=image_url, category=category, owner_user=user)
+
+            if Listing.objects.filter(title=title, owner_user=user).exists():
+                return render(request, "auctions/create-announce.html", {
+                    "error" : "You already have this title created"
+                })
+            else:    
+                listing.save()
+                return HttpResponseRedirect(reverse("get_announce"))
+                
+        else:
+            return render(request, "auctions/create-announce.html")
+    else:
+        return HttpResponseRedirect(reverse("login"))
+
+def get_announce(request):
+    return render(request, "auctions/announce-details.html")
