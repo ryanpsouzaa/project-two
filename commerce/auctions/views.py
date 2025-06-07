@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
@@ -12,11 +13,23 @@ from .models import User, Listing, Bid, Comment
 
 #todo: construir Django forms e colocar decorator
 class ListingForm(forms.Form):
-    title = forms.CharField(label="Title", max_length=64)
-    description = forms.Textarea()
-    initial_bid = forms.DecimalField()
-    image_url = forms.Textarea()
-    category = forms.CharField()
+    title = forms.CharField(label="Title", max_length=64, error_messages={"required":"Enter the title"})
+    description = forms.CharField(widget=forms.Textarea)
+    initial_bid = forms.DecimalField(label="Initial Bid", min_value=0.00, decimal_places=2)
+    image_url = forms.URLField(label="image URL", required=False)
+    category = forms.ChoiceField(choices=[
+        ("eletronics", "Eletronics"),
+        ("home_appliances", "Home Appliances"),
+        ("furniture", "Furniture"),
+        ("vehicles", "Vehicles"),
+        ("fashion_and_acessories", "Fashion & Acessories"),
+        ("books_and_education", "Books & Education"),
+        ("musical_instruments", "Musical Instruments"),
+        ("toys", "Toys"),
+        ("games", "Games"),
+        ("tools_and_construction", "Tools & Construction"),
+        ("pets", "Pets & Pets Supplies")
+    ])
 
 def index(request):
     listings_active = Listing.objects.filter(active=True).all()
@@ -77,39 +90,39 @@ def register(request):
         return render(request, "auctions/register.html")
 
 
+@login_required
 def create_announce(request):
-    if request.user.is_authenticated:
-        if request.method == "POST":
-            title = request.POST["title"]
-            description = request.POST["description"]
-            initial_bid = request.POST["bid"]
+    if request.method == "POST":
+        form = ListingForm(request.POST)
+        title = form.cleaned_data["title"]
+        description = form.cleaned_data["description"]
+        initial_bid = form.cleaned_data["initial_bid"]
+        category = form.cleaned_data["category"]
+        image_url = form.cleaned_data["image_url"]
+        user = request.user
+        if not category.strip() and not image_url.strip():
+            listing = Listing(title=title, description=description, initial_bid=initial_bid,
+            owner_user=user)
 
-            category = request.POST["category"]
-            image_url = request.POST["image"]
-
-            user = request.user
-            if not category.strip() and not image_url.strip():
-                listing = Listing(title=title, description=description, initial_bid=initial_bid,
-                owner_user=user)
-
-            else:
-                listing = Listing(title=title, description=description, initial_bid=initial_bid,
-                image_url=image_url, category=category, owner_user=user)
-
-            if Listing.objects.filter(title=title, owner_user=user).exists():
-                return render(request, "auctions/create-announce.html", {
-                    "error" : "You already have this title created"
-                })
-            else:    
-                listing.save()
-                return render(request, "auctions/announce-details.html", get_context_listing(listing, {
-                    "notification" : f"Announce: {listing.title} created"
-                }))
-                
         else:
-            return render(request, "auctions/create-announce.html")
+            listing = Listing(title=title, description=description, initial_bid=initial_bid,
+            image_url=image_url, category=category, owner_user=user)
+
+        if Listing.objects.filter(title=title, owner_user=user).exists():
+            return render(request, "auctions/create-announce.html", {
+                "error" : "You already have this title created"
+            })
+        else:
+            listing.save()
+            return render(request, "auctions/announce-details.html", get_context_listing(listing, {
+                "notification" : f"Announce: {listing.title} created"
+            }))
+                
     else:
-        return redirect("login")
+        form = ListingForm()
+        return render(request, "auctions/create-announce.html", {
+            "form" : form
+        })
 
 def get_announce(request, listing_id):
     if request.user.is_authenticated:
