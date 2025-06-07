@@ -1,6 +1,13 @@
 {% extends 'auctions/layout.html' %}
 
 {% block body %}
+
+    {% if notification %}
+        <div class="alert alert-primary" role="alert">
+            {{ notification }}
+        </div>
+    {% endif %}
+
     {% if error %}
         <div class="alert alert-danger" role="alert">
             {{ error }}
@@ -31,14 +38,33 @@
         <li>Owner: {{ listing.owner_user }}</li>
     </ul>
 
-    {% if request.user.is_authenticated %}
+    <h3>Comments</h3>
+    <ul>
+        {% for comment in comments %}
+            <li>{{ comment.message }}</li>
+        {% empty %}
+            <h4>No comments</h4>
+        {% endfor %}
+
+    </ul>
+
+    {% if request.user.is_authenticated and request.user != listing.owner_user %}
         <h4>Insert a Bid</h4>
-        <form action="{% url 'bid' listing.id %}" method="post">
+        <form action="{% url 'add_bid' listing.id %}" method="post">
             {% csrf_token %}
             <label for="value">
                 <input type="number" name="value">
             </label>
             <input type="submit" value="Bid">
+        </form>
+    {% endif %}
+
+    {% if request.user.is_authenticated and request.user != listing.owner_user %}
+        <h4>Insert a comment</h4>
+        <form action="{% url 'add_comment' listing.id %}" method="post">
+            {% csrf_token %}
+            <input type="text" name="message">
+            <input type="submit" value="Comment">
         </form>
     {% endif %}
 

@@ -15,6 +15,9 @@ class Listing(models.Model):
     owner_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings")
     active = models.BooleanField(default=True)
 
+    def __str__(self):
+        return f"{self.title} - initial_bid: {self.initial_bid}, active: {self.active}"
+
 class Bid(models.Model):
     value = models.DecimalField(max_digits=10, decimal_places=2)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bids")
