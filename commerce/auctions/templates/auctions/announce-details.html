@@ -1,6 +1,45 @@
 {% extends 'auctions/layout.html' %}
 
 {% block body %}
-<h1>TESTE</h1>
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+    {% endif %}
+
+<h1>Announce Details</h1>
+    <ul>
+        <li>Title: {{ listing.title }}</li>
+        <li>Description: {{ listing.description }}</li>
+
+        {% if current_bid %}
+            <li>Current Bid: {{ current_bid }}</li>
+
+        {% else %}
+            <li>Initial Bid: {{ listing.initial_bid }}</li>
+        {% endif %}
+
+
+        {% if listing.image_url %}
+            <li>Image: {{ listing.image_url }}</li>
+        {% endif %}
+
+        {% if listing.category %}
+            <li>Category: {{ listing.category }}</li>
+        {% endif %}
+
+        <li>Owner: {{ listing.owner_user }}</li>
+    </ul>
+
+    {% if request.user.is_authenticated %}
+        <h4>Insert a Bid</h4>
+        <form action="{% url 'bid' listing.id %}" method="post">
+            {% csrf_token %}
+            <label for="value">
+                <input type="number" name="value">
+            </label>
+            <input type="submit" value="Bid">
+        </form>
+    {% endif %}
 
 {% endblock %}
