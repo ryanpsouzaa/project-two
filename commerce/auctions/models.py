@@ -4,6 +4,7 @@ from django.db import models
 
 class User(AbstractUser):
     watch_list = models.ManyToManyField('Listing', blank=True, related_name="watchlisted_by")
+    listings_won = models.ManyToManyField('Listing', blank=True, related_name="user_winner")
 
 
 class Listing(models.Model):

@@ -1,0 +1,25 @@
+{% extends 'auctions/layout.html' %}
+
+{% block body %}
+
+    {% if notification %}
+        <div class="alert alert-primary" role="alert">
+            {{ notification }}
+        </div>
+    {% elif error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <h2>{{ listing.username }}</h2>
+    <ul>
+        <li>Full name: {{ listing.first }} {{ listing.last }}</li>
+        <li>Email: {{ listing.email }}</li>
+        {% for listing in listings_won %}
+
+        {% endfor %}
+
+    </ul>
+
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'auctions/layout.html' %}
+
+{% block body %}
+
+    {% if message %}
+        <div class="alert alert-primary" role="alert">
+            {{ message }}
+        </div>
+
+    {% else %}
+        <h2>Your Watch List</h2>
+        <ul>
+            {% for listing in watchlist %}
+                {% if listing.active %}
+                    <li>
+                        <a href="{% url 'get_announce' listing.id %}">{{ listing }}</a>
+                    </li>
+
+                {% endif %}
+
+            {% endfor %}
+        </ul>
+
+    {% endif %}
+{% endblock %}

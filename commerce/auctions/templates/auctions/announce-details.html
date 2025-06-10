@@ -15,6 +15,18 @@
     {% endif %}
 
 <h1>Announce Details</h1>
+    {% if listing.owner_user != request.user %}
+        {% if listing in request.user.watch_list.all %}
+            <a href="{% url 'remove_watchlist' listing.id %}">Remove from your Watch List</a>
+        {% else %}
+            <a href="{% url 'add_watchlist' listing.id %}">Add to your Watch List</a>
+
+        {% endif %}
+
+    {% else %}
+        <a href="{% url 'remove_listing' listing.id %}">Remove Listing to announce</a>
+    {% endif %}
+
     <ul>
         <li>Title: {{ listing.title }}</li>
         <li>Description: {{ listing.description }}</li>

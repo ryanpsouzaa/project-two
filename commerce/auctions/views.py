@@ -57,7 +57,7 @@ def login_view(request):
     else:
         return render(request, "auctions/login.html")
 
-
+@login_required()
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("index"))
@@ -90,7 +90,7 @@ def register(request):
         return render(request, "auctions/register.html")
 
 
-@login_required
+@login_required()
 def create_announce(request):
     if request.method == "POST":
         form = ListingForm(request.POST)
@@ -136,6 +136,7 @@ def get_announce(request, listing_id):
     else:
         return redirect("login")
 
+@login_required()
 def insert_bid(request, listing_id):
     if not request.user.is_authenticated:
         return redirect("login")
@@ -164,7 +165,7 @@ def insert_bid(request, listing_id):
         else:
             return redirect("get_announce", listing_id=listing_id)
 
-
+@login_required()
 def insert_comment(request, listing_id):
     listing = Listing.objects.get(pk=listing_id)
     if not request.user.is_authenticated:
@@ -190,3 +191,60 @@ def get_context_listing(listing, extra_content=None):
     if extra_content:
         context.update(extra_content)
     return context
+
+def get_watchlist(request):
+    if request.user.watch_list.filter(active=True).exists():
+        return render(request, "auctions/watchlist-details.html", {
+            "watchlist" : request.user.watch_list.all()
+        })
+    else:
+        return render(request, "auctions/watchlist-details.html", {
+            "message" : "There is no listing in your Watch List"
+        })
+
+@login_required()
+def add_watchlist(request, listing_id):
+    listing = Listing.objects.get(pk=listing_id)
+    user = request.user
+    user.watch_list.add(listing)
+    return render(request, "auctions/announce-details.html", get_context_listing(listing,{
+        "notification" : "Listing added to your Watch List"
+    }))
+
+@login_required()
+def remove_watchlist(request, listing_id):
+    listing = Listing.objects.get(pk=listing_id)
+    user = request.user
+    user.watch_list.remove(listing)
+    return render(request, "auctions/announce-details.html", get_context_listing(listing, {
+        "notification" : "Listing removed to Watch List"
+    }))
+
+#todo:Adicionar lógica de remover listing do watchlist
+#todo: filtrar para que apareca somente listings active no html
+@login_required()
+def remove_listing_active(request, listing_id):
+    listing = Listing.objects.get(pk=listing_id)
+    if not listing.active:
+        return render(request, "auctions/user-page.html", {
+            "error" : f"Listing {listing.title} is already inactive"
+        })
+    if listing.bids.exists() > 0:
+        bid_winner = listing.bids.order_by("-value").first()
+
+        user_won = bid_winner.user
+        user_won.listings_won.add(listing)
+
+        notification = f"{listing.title} Removed, buyed for {bid_winner.user.username}"
+    else:
+        notification = f"{listing.title} Removed"
+
+    listing.active = False
+    listing.save()
+    return render(request, "auctions/user-page.html", {
+        "notification" : notification
+    })
+
+#todo: user page com informacoes sobre o perfil listings anunciadas e listings compradas
+
+
