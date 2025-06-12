@@ -1,0 +1,38 @@
+{% extends 'auctions/layout.html' %}
+
+{% block body %}
+    {% if notification %}
+        <div class="alert alert-primary" role="alert">
+            {{ notification }}
+        </div>
+    {% endif %}
+
+    <h2>Listing details</h2>
+
+    <ul>
+        <li>Title: {{ listing.title }}</li>
+        <li>Description: {{ listing.description }}</li>
+        <li>Category: {{ listing.category }}</li>
+        <li>Initial Bid: {{ listing.initial_bid }}</li>
+        <li>Listing creator: {{ listing.owner_user }}</li>
+
+        {% if listing.winner_user %}
+            <li>
+                <a href="{% url 'get_user' listing.winner_user.id %}">Winner: {{ listing.winner_user.username }}</a>
+            </li>
+
+            <li>Bid won: {{ listing.winner_bid }}</li>
+        {% endif %}
+
+        {% if comments %}
+            <h3>Comments</h3>
+            <ul>
+            {% for comment in comments %}
+                <li>{{ comment }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+
+    </ul>
+
+{% endblock %}

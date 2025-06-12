@@ -13,7 +13,7 @@
             {% for listing in watchlist %}
                 {% if listing.active %}
                     <li>
-                        <a href="{% url 'get_announce' listing.id %}">{{ listing }}</a>
+                        <a href="{% url 'get_listing' listing.id %}">{{ listing }}</a>
                     </li>
 
                 {% endif %}

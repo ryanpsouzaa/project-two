@@ -4,8 +4,6 @@ from django.db import models
 
 class User(AbstractUser):
     watch_list = models.ManyToManyField('Listing', blank=True, related_name="watchlisted_by")
-    listings_won = models.ManyToManyField('Listing', blank=True, related_name="user_winner")
-
 
 class Listing(models.Model):
     title = models.CharField(max_length=64)
@@ -15,12 +13,14 @@ class Listing(models.Model):
     category = models.CharField(max_length=64, null=True, blank=True)
     owner_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings")
     active = models.BooleanField(default=True)
+    winner_bid = models.DecimalField(max_digits=12, blank=True, null=True, decimal_places=2)
+    winner_user = models.ForeignKey(User, blank=True, null=True, related_name="listings_won", on_delete=models.SET_NULL)
 
     def __str__(self):
         return f"{self.title} - initial_bid: {self.initial_bid}, active: {self.active}"
 
 class Bid(models.Model):
-    value = models.DecimalField(max_digits=10, decimal_places=2)
+    value = models.DecimalField(max_digits=12, decimal_places=2)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bids")
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="bids")
 
